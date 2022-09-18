@@ -89,7 +89,7 @@ def add_drink(payload):
 
         return jsonify({
             'success': True,
-            'drinks': new_drink.long()
+            'drinks': [new_drink.long()]
         })
 
 
@@ -104,6 +104,27 @@ def add_drink(payload):
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks/<int:id>', methods=['PATCH'])
+@requires_auth('patch:drinks')
+def edit_drink(payload, id):
+    body = request.get_json()
+    drink = Drink.query.filter(Drink.id==id).one_or_none()
+
+    if drink == None:
+        abort(404)
+    elif 'title' and 'recipe' not in body:
+        abort(422)
+    else:
+        drink.title = body['title']
+        drink.recipe = body['recipe']
+
+        drink.update()
+        return jsonify({
+            'success': True,
+            'drinks': [drink.long()]
+        })
+
+
 
 
 '''
