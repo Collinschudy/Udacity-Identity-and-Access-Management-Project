@@ -20,7 +20,14 @@ CORS(app)
 # db_drop_and_create_all()
 
 # ROUTES
+
+@app.route('/')
+def default():
+    return jsonify({
+        'success': True,
+        'message':'Hi There'})
 '''
+
 @TODO implement endpoint
     GET /drinks
         it should be a public endpoint
@@ -28,6 +35,15 @@ CORS(app)
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
 '''
+
+@app.route('/drinks', methods=['GET'])
+def get_drinks():
+    drinks = [drink.short() for drink in Drink.query.order_by(Drink.id).all()]
+
+    return jsonify({
+        'success': True,
+        'drinks': drinks
+    })
 
 
 '''
