@@ -112,17 +112,19 @@ def edit_drink(payload, id):
 
     if drink == None:
         abort(404)
-    elif 'title' and 'recipe' not in body:
-        abort(422)
+   
     else:
-        drink.title = body['title']
-        drink.recipe = body['recipe']
+        try:
+            drink.title = body['title']
+            drink.recipe = body['recipe']
 
-        drink.update()
-        return jsonify({
-            'success': True,
-            'drinks': [drink.long()]
-        })
+            drink.update()
+            return jsonify({
+                'success': True,
+                'drinks': [drink.long()]
+            })
+        except Exception:
+            abort(422)
 
 
 
