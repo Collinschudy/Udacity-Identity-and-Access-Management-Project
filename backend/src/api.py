@@ -38,7 +38,7 @@ def default():
 
 @app.route('/drinks', methods=['GET'])
 def get_drinks():
-    drinks = [drink.short() for drink in Drink.query.order_by(Drink.id).all()]
+    drinks = [drink.short() for drink in Drink.query.all()]
 
     return jsonify({
         'success': True,
@@ -54,7 +54,15 @@ def get_drinks():
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks-detail', methods=['GET'])
+@requires_auth('get:drinks-detail')
+def get_drinks_detail(payload):
+    drinks = [drink.long() for drink in Drink.query.all()]
 
+    return jsonify({
+        'success': True,
+        'drinks': drinks
+    })
 
 '''
 @TODO implement endpoint
@@ -65,6 +73,7 @@ def get_drinks():
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
         or appropriate status code indicating reason for failure
 '''
+
 
 
 '''
