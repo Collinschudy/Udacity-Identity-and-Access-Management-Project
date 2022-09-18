@@ -74,6 +74,23 @@ def get_drinks_detail(payload):
         or appropriate status code indicating reason for failure
 '''
 
+@app.route('/drinks', methods=['POST'])
+@requires_auth('post:drinks')
+def add_drink(payload):
+    body = request.get_json()
+    if 'title' and 'recipe' not in body:
+        abort(422)
+    else:
+        drink_title = body['title']
+        drink_recipe = body['recipe']
+
+        new_drink = Drink(title=drink_title, recipe=drink_recipe)
+        new_drink.insert()
+
+        return jsonify({
+            'success': True,
+            'drinks': new_drink.long()
+        })
 
 
 '''
