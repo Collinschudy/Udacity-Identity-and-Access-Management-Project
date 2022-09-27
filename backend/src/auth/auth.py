@@ -2,10 +2,10 @@ import json
 from flask import request, _request_ctx_stack, abort
 from functools import wraps
 from jose import jwt
-from urllib.request import urlopen
+from urllib.request import urlopen, Request
 
 
-AUTH0_DOMAIN = 'dubemsesure.us.auth0.com'
+AUTH0_DOMAIN = 'dubemsecure.us.auth0.com'
 ALGORITHMS = ['RS256']
 API_AUDIENCE = 'coffee'
 
@@ -31,8 +31,8 @@ class AuthError(Exception):
     return the token part of the header
 '''
 def get_token_auth_header():
-    auth = request.header.get('Authorization', None)
-     if not auth:
+    auth = request.headers.get('Authorization', None)
+    if not auth:
         raise AuthError({
             'code': 'authorization_header_missing',
             'description': 'Authorization header is expected.'
@@ -77,16 +77,16 @@ def check_permissions(permission, payload):
     if 'permissions' not in payload:
         raise AuthError({
             'code': 'Invalid claims',
-            'description': 'Permissions not included in the JWT'
+            'description': 'Permissions not included in JWT'
         }, 400)
 
     if permission not in payload['permissions']:
         raise AuthError({
-            'code': 'unauthorized access',
-            'description': 'permission not granted'
+            'code': 'unauthorized',
+            'description': 'Permission not found'
         }, 403)
 
-    return true
+    return True
 
 
 '''
@@ -177,9 +177,12 @@ def requires_auth(permission=''):
                 payload = verify_decode_jwt(token)
             except:
                 abort(401)
+           
 
             check_permissions(permission, payload)
             return f(payload, *args, **kwargs)
 
         return wrapper
     return requires_auth_decorator
+
+    #https://dubemsecure.us.auth0.com/authorize?audience=coffee&response_type=token&client_id=gSBCsDIpChZlisYyMIMHlh4pd8Vqj1ek&redirect_uri=http://localhost:8080/login-results

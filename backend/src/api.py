@@ -5,7 +5,7 @@ import json
 from flask_cors import CORS
 
 from .database.models import db_drop_and_create_all, setup_db, Drink
-from .auth.auth import AuthError, requires_auth
+from .auth.auth import AuthError, requires_auth, get_token_auth_header
 
 app = Flask(__name__)
 setup_db(app)
@@ -17,7 +17,7 @@ CORS(app)
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
 !! Running this funciton will add one
 '''
-# db_drop_and_create_all()
+db_drop_and_create_all()
 
 # ROUTES
 
@@ -57,12 +57,14 @@ def get_drinks():
 @app.route('/drinks-detail', methods=['GET'])
 @requires_auth('get:drinks-detail')
 def get_drinks_detail(payload):
-    drinks = [drink.long() for drink in Drink.query.all()]
-
-    return jsonify({
-        'success': True,
-        'drinks': drinks
-    })
+    try:
+        drinks = [drink.long() for drink in Drink.query.all()]
+        return jsonify({
+            'success': True,
+            'drinks': drinks
+        })
+    except:
+        abort(401)
 
 '''
 @TODO implement endpoint
@@ -76,13 +78,13 @@ def get_drinks_detail(payload):
 
 @app.route('/drinks', methods=['POST'])
 @requires_auth('post:drinks')
-def add_drink(payload):
+def add_drink(jwt):
     body = request.get_json()
     if 'title' and 'recipe' not in body:
         abort(422)
     else:
         drink_title = body['title']
-        drink_recipe = body['recipe']
+        drink_recipe = json.dumps(body['recipe'])
 
         new_drink = Drink(title=drink_title, recipe=drink_recipe)
         new_drink.insert()
@@ -115,14 +117,23 @@ def edit_drink(payload, id):
    
     else:
         try:
-            drink.title = body['title']
-            drink.recipe = body['recipe']
+            if 'title' in body:
+                drink.title = body['title']
 
-            drink.update()
-            return jsonify({
-                'success': True,
-                'drinks': [drink.long()]
-            })
+                drink.update()
+                return jsonify({
+                    'success': True,
+                    'drinks': [drink.long()]
+                })
+
+            elif 'recipe' in body:
+                drink.recipe = json.dumps(body.get['recipe'])
+
+                drink.update()
+                return jsonify({
+                    'success': True,
+                    'drinks': [drink.long()]
+                })
         except Exception:
             abort(422)
 
@@ -150,7 +161,7 @@ def delete_drink(payload, id):
         
         return jsonify({
             'success': True,
-            'deleted': drink.id
+            'delete': drink.id
         })
 # Error Handling
 '''
@@ -165,6 +176,23 @@ def unprocessable(error):
         "error": 422,
         "message": "unprocessable"
     }), 422
+
+@app.errorhandler(500)
+def unprocessable(error):
+    return jsonify({
+        "success": False,
+        "error": 500,
+        "message": "internal server error"
+    }), 500
+
+@app.errorhandler(401)
+def unprocessable(error):
+    return jsonify({
+        "success": False,
+        "error": 401,
+        "message": "Unauthorized"
+    }), 401
+
 
 
 '''
